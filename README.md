@@ -1,6 +1,6 @@
 # Heart Disease prediction using Machine Learning.
 
-![](image1.jpg)
+![](docs/images/image1.jpg)
 
 ## The brief information about the approach is given in the following [blog](https://medium.com/@shubhankarrawatsam.1999/heart-disease-prediction-73468d630cfc)
 
