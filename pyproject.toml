@@ -1,0 +1,93 @@
+[project]
+name = "heart-disease"
+version = "0.1.0"
+description = "Heart disease prediction (production refactor)"
+authors = [
+    {name = "roux-afk",email = "52426386+roux-afk@users.noreply.github.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "pandas (>=3.0.6,<4.0.0)",
+    "scikit-learn (>=1.9.1,<2.0.0)",
+    "matplotlib (>=3.11.2,<4.0.0)",
+    "seaborn (>=0.13.2,<0.14.0)",
+    "lightgbm (>=4.7.0,<5.0.0)",
+    "xgboost (>=3.4.1,<4.0.0)",
+    "joblib (>=1.6.0,<2.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "ruff (>=0.16.10,<0.17.0)",
+    "mypy (>=2.4.0,<3.0.0)",
+    "pandas-stubs (>=3.0.5.260914,<4.0.0.0)",
+    "pytest (>=9.1.1,<10.0.0)",
+    "pytest-cov (>=7.1.0,<8.0.0)",
+    "pre-commit (>=4.6.2,<5.0.0)"
+]
+
+[tool.poetry]
+packages = [{ include = "heart_disease", from = "src" }]
+
+[project.scripts]
+heart-disease-train = "heart_disease.train:main"
+heart-disease-eda = "heart_disease.plots:main"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",  # pycodestyle
+    "F",       # pyflakes
+    "I",       # isort
+    "B",       # bugbear: likely bugs
+    "UP",      # pyupgrade: modern syntax
+    "N",       # pep8-naming
+    "SIM",     # simplify
+    "C4",      # comprehensions
+    "PTH",     # pathlib instead of os.path
+    "RUF",     # ruff-specific
+    "D",       # docstrings
+    "PL",      # pylint
+    "NPY",     # numpy
+    "PD",      # pandas-vet
+]
+ignore = [
+    "D100",  # module docstring
+    "D104",  # package docstring
+    "D203",  # conflicts with D211
+    "D213",  # conflicts with D212
+    "PLR0913",  # total args; positional ones are limited by PLR0917
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D", "PLR2004"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+mypy_path = "src"
+
+[[tool.mypy.overrides]]
+module = ["sklearn.*", "seaborn.*", "lightgbm.*", "joblib.*", "xgboost.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=heart_disease --cov-report=term-missing"
+
+[tool.coverage.run]
+branch = true
+
+[tool.coverage.report]
+fail_under = 80
+exclude_also = ['if __name__ == "__main__":']

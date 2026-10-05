@@ -1,0 +1,47 @@
+default_install_hook_types: [pre-commit]
+default_stages: [pre-commit]
+
+repos:
+  # Generic file hygiene
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=500"]
+      - id: detect-private-key
+      - id: no-commit-to-branch
+        args: ["--branch", "master", "--branch", "main"]
+
+  # Project tools run from the Poetry venv, so versions match poetry.lock
+  - repo: local
+    hooks:
+      - id: poetry-check
+        name: poetry check (pyproject.toml and poetry.lock in sync)
+        entry: poetry check --lock
+        language: system
+        files: ^(pyproject\.toml|poetry\.lock)$
+        pass_filenames: false
+
+      - id: ruff-check
+        name: ruff check
+        entry: poetry run ruff check --fix
+        language: system
+        types: [python]
+
+      - id: ruff-format
+        name: ruff format
+        entry: poetry run ruff format
+        language: system
+        types: [python]
+
+      - id: mypy
+        name: mypy
+        entry: poetry run mypy src tests
+        language: system
+        types: [python]
+        pass_filenames: false

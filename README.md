@@ -1,76 +1,122 @@
-# Heart Disease prediction using Machine Learning.
+# Предсказание сердечно-сосудистых заболеваний
 
-![](image1.jpg)
+![](docs/images/image1.jpg)
 
-## The brief information about the approach is given in the following [blog](https://medium.com/@shubhankarrawatsam.1999/heart-disease-prediction-73468d630cfc)
+Бинарная классификация наличия болезни сердца на
+[датасете UCI Cleveland](https://archive.ics.uci.edu/dataset/45/heart+disease)
+(303 пациента, 13 признаков). Семь классификаторов обучаются на одном и том же
+разбиении, лучший по выбранной метрике сохраняется как готовый sklearn Pipeline.
 
-## Introduction
+> Production-рефакторинг проекта [ShubhankarRawat/Heart-Disease-Prediction](https://github.com/ShubhankarRawat/Heart-Disease-Prediction).
+> Исходный анализ и выбор датасета: Shubhankar Rawat.
 
-Heart diseases is a term covering any disorder of the heart.
-Heart diseases have become a major concern to deal with as studies show that the number of deaths due to heart diseases have increased significantly over the past few decades in India, in fact it has become the leading cause of death in India.
+## Быстрый старт
 
-A study shows that from 1990 to 2016 the death rate due to heart diseases have increased around 34 per cent from 155.7 to 209.1 deaths per one lakh population in India.
+Требования: Python 3.12 (см. `.python-version`), [Poetry](https://python-poetry.org/) 2.x,
+на macOS также `brew install libomp` (нужен для LightGBM/XGBoost).
 
-Thus preventing Heart diseases has become more than necessary.
-Good data-driven systems for predicting heart diseases can improve the entire research and prevention process, making sure that more people can live healthy lives.
-This is where Machine Learning comes into play.
-Machine Learning helps in predicting the Heart diseases, and the predictions made are quite accurate.
+```bash
+make install   # создать .venv, установить зависимости и pre-commit хуки
+make train     # обучить все модели -> models/model.joblib, reports/metrics.json
+make eda       # сохранить EDA-графики -> reports/figures/
+make check     # линтер + проверка типов + тесты (то же, что в CI)
+```
 
-Problem Description :
+Обучить часть моделей и выбрать лучшую по recall:
 
-A dataset is formed by taking into consideration some of the information of 779 individuals.
-The problem is : based on the given information about each individual we have to calculate that whether that individual will suffer from heart disease.
+```bash
+poetry run heart-disease-train --models logistic_regression naive_bayes --metric recall
+```
 
-## Dataset :
+Использовать сохранённую модель:
 
-The dataset consists of 779 individuals data.
-There are 15 columns in the dataset, however the first column name is not a good parameter as far as machine learning is considered so, there are effectively 14 columns.
+```python
+import joblib
+from heart_disease.data import clean_data, load_raw_data, split_features_target
 
-1.	Age : displays the age of the individual.
-2.	Sex : displays the gender of the individual using the following   format : 1 = male
-          0 = female.
-3.	Chest-pain type : displays the type of chest-pain experienced by the individual using the following format :
-           1 = typical angina
-           2 = atypical angina
-           3 = non - anginal pain
-           4 = asymptotic
-4.	Resting Blood Pressure : displays the resting blood pressure value of an individual in mmHg (unit)
-5.	Serum Cholestrol : displays the serum cholestrol in mg/dl (unit)
-6.	Fasting Blood Sugar : compares the fasting blood sugar value of an individual with 120mg/dl. 
-   If fasting blood sugar > 120mg/dl then : 1  (true)
-                                else : 0   (false)
-7.	Resting ECG : 
-              0 = normal
-              1 = having ST-T wave abnormality
-              2 = left ventricular hyperthrophy
-8.	Max heart rate achieved : displays the max heart rate achieved by an individual.
-9.	Exercise induced angina : 
-              1 = yes
-              0 = no
-10.	ST depression induced by exercise relative to rest : displays the value which is integer or float.
-11.	Peak exercise ST segment : 
-              1 = upsloping
-              2 = flat
-              3 = downsloping
-12.	Number of major vessels (0-3) colored by flourosopy : displays the value as integer or float.
-13.	Thal : displays the thalassemia : 
-              3 = normal
-              6 = fixed defect
-              7 = reversable defect
-14.	Diagnosis of heart disease : Displays whether the individual is suffering from heart disease or not : 
-              0 = absence
-              1,2,3,4 = present.
+pipeline = joblib.load("models/model.joblib")
+features, _ = split_features_target(clean_data(load_raw_data()))
+pipeline.predict(features)  # сырые признаки: импутация и масштабирование внутри пайплайна
+```
 
-## Model Training and Prediction : 
-We can train our prediction model by analyzing existing data because we already know whether each patient has heart disease. This process is also known as supervision and learning. The trained model is then used to predict if users suffer from heart disease. The training and prediction process is described as follows:
+## Структура проекта
 
-## Splitting: 
-First, data is divided into two parts using component splitting. In this experiment, data is split based on a ratio of 80:20 for the training set and the prediction set. The training set data is used in the logistic regression component for model training, while the prediction set data is used in the prediction component.
+```
+├── data/raw/cleveland.csv      # исходный датасет (CSV без заголовка)
+├── src/heart_disease/
+│   ├── config.py               # пути, схема данных, константы
+│   ├── data.py                 # загрузка и очистка данных
+│   ├── models.py               # реестр моделей, sklearn Pipeline
+│   ├── evaluate.py             # метрики
+│   ├── train.py                # CLI: heart-disease-train
+│   └── plots.py                # CLI: heart-disease-eda
+├── tests/                      # тесты pytest (синтетические данные, запись только во tmp)
+├── .pre-commit-config.yaml     # ruff, mypy, poetry check, гигиена файлов
+├── .github/workflows/ci.yml    # CI: pre-commit + тесты
+├── pyproject.toml / poetry.lock
+└── Makefile
+```
 
-The following classification models are used - Logistic Regression, Random Forest Classfier, SVM, Naive Bayes Classifier, Decision Tree Classifier, LightGBM, XGBoost
+## Команды разработки
 
-## Prediction:
-The two inputs of the prediction component are the model and the prediction set. The prediction result shows the predicted data, actual data, and the probability of different results in each group.
+| Команда | Что делает |
+|---|---|
+| `make install` | Создаёт `.venv`, ставит зависимости из `poetry.lock`, устанавливает git-хуки |
+| `make lint` | Линтер ruff |
+| `make format` | Автоисправление и форматирование кода |
+| `make typecheck` | Проверка типов mypy (strict) |
+| `make test` | Тесты с отчётом о покрытии (минимум 80%) |
+| `make check` | Все проверки разом, как в CI |
+| `make clean` | Удаляет кэши и сгенерированные артефакты |
 
-## Evaluation: 
-The confusion matrix, also known as the error matrix, is used to evaluate the accuracy of the model.
+Виртуальное окружение `.venv` создаётся внутри проекта и в git не попадает.
+Воспроизводимость обеспечивают три файла: `pyproject.toml` (зависимости),
+`poetry.lock` (точные версии) и `.python-version` (версия Python).
+
+## Результаты
+
+Тестовая выборка 20%, стратифицированная, `random_state=0`:
+
+| Модель | Accuracy | Recall | F1 | ROC-AUC |
+|---|---|---|---|---|
+| Naive Bayes | 0.918 | 0.929 | 0.912 | 0.932 |
+| SVM (RBF) | 0.852 | 0.821 | 0.836 | — |
+| Logistic Regression | 0.836 | 0.821 | 0.821 | 0.944 |
+| LightGBM | 0.836 | 0.750 | 0.808 | 0.918 |
+| Random Forest | 0.820 | 0.750 | 0.793 | 0.880 |
+| XGBoost | 0.820 | 0.714 | 0.784 | 0.909 |
+| Decision Tree | 0.754 | 0.679 | 0.717 | 0.748 |
+
+В тестовой выборке 61 пациент: одно предсказание — это ~1.6% accuracy,
+поэтому разница между моделями в несколько пунктов находится в пределах шума.
+Для медицинской задачи особенно важен recall — доля больных, которых модель не пропустила.
+
+## Датасет
+
+| Колонка | Описание |
+|---|---|
+| age | Возраст, лет |
+| sex | Пол: 1 — мужской, 0 — женский |
+| cp | Тип боли в груди: 1 типичная стенокардия, 2 атипичная, 3 неангинозная, 4 бессимптомная |
+| trestbps | Артериальное давление в покое, мм рт. ст. |
+| chol | Холестерин в сыворотке, мг/дл |
+| fbs | Сахар натощак > 120 мг/дл (1 — да) |
+| restecg | ЭКГ в покое: 0 норма, 1 аномалия ST-T, 2 гипертрофия левого желудочка |
+| thalach | Максимальный пульс при нагрузке |
+| exang | Стенокардия при нагрузке (1 — да) |
+| oldpeak | Депрессия сегмента ST при нагрузке относительно покоя |
+| slope | Наклон сегмента ST на пике нагрузки: 1 восходящий, 2 плоский, 3 нисходящий |
+| ca | Число крупных сосудов, окрашенных при флюороскопии (0–3), 4 пропуска |
+| thal | Талассемия: 3 норма, 6 фиксированный дефект, 7 обратимый дефект, 2 пропуска |
+| target | 0 — нет болезни, 1–4 — есть (приводится к 0/1) |
+
+## Что изменено по сравнению с оригиналом
+
+- Один скрипт на 230 строк → устанавливаемый пакет с CLI-командами
+- **Исправлена утечка данных (data leakage)**: пропуски заполнялись средним по всему датасету до train/test split; теперь импутация внутри пайплайна и считается только на train
+- **Исправлен LightGBM**: `lgb.train(params={})` обучал регрессор с ручным порогом 0.5; заменён на `LGBMClassifier`
+- Перепутанный порядок аргументов `confusion_matrix(y_pred, y_test)` и ручной подсчёт accuracy → `sklearn.metrics`, добавлены precision / recall / F1 / ROC-AUC
+- Фиксированный `random_state` у всех моделей, стратифицированное разбиение
+- `plt.show()` посреди обучения → графики сохраняются в файлы отдельной командой
+- Исправлено описание датасета: в оригинальном README указано 779 записей и 15 колонок, фактически 303 и 14
+- Poetry с lock-файлом, ruff, mypy в strict-режиме, pre-commit, pytest (покрытие 96%), CI на GitHub Actions

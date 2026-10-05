@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Poetry
+        run: pipx install poetry==2.5.1
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version-file: .python-version
+          cache: poetry
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Pre-commit hooks
+        run: poetry run pre-commit run --all-files --show-diff-on-failure
+        env:
+          SKIP: no-commit-to-branch
+
+      - name: Tests
+        run: poetry run pytest
