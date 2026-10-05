@@ -80,3 +80,14 @@ mypy_path = "src"
 [[tool.mypy.overrides]]
 module = ["sklearn.*", "seaborn.*", "lightgbm.*", "joblib.*", "xgboost.*"]
 ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=heart_disease --cov-report=term-missing"
+
+[tool.coverage.run]
+branch = true
+
+[tool.coverage.report]
+fail_under = 80
+exclude_also = ['if __name__ == "__main__":']
