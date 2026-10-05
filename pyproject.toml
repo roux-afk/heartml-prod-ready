@@ -37,3 +37,4 @@ packages = [{ include = "heart_disease", from = "src" }]
 
 [project.scripts]
 heart-disease-train = "heart_disease.train:main"
+heart-disease-eda = "heart_disease.plots:main"

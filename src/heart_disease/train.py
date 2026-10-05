@@ -9,7 +9,14 @@ import joblib
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 
-from heart_disease.config import MODELS_DIR, RANDOM_STATE, RAW_DATA_PATH, REPORTS_DIR, TEST_SIZE
+from heart_disease.config import (
+    LOG_FORMAT,
+    MODELS_DIR,
+    RANDOM_STATE,
+    RAW_DATA_PATH,
+    REPORTS_DIR,
+    TEST_SIZE,
+)
 from heart_disease.data import clean_data, load_raw_data, split_features_target
 from heart_disease.evaluate import evaluate
 from heart_disease.models import MODEL_REGISTRY, build_pipeline
@@ -90,7 +97,7 @@ def save_artifacts(
 
 
 def main(argv: list[str] | None = None) -> None:
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    logging.basicConfig(level=logging.INFO, format=LOG_FORMAT)
     args = parse_args(argv)
 
     pipelines, metrics = train(args.data_path, args.models)
