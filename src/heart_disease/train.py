@@ -29,6 +29,7 @@ Metrics = dict[str, dict[str, dict[str, float]]]
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    """Parse command-line arguments for the training CLI."""
     parser = argparse.ArgumentParser(description="Train heart disease classifiers.")
     parser.add_argument("--data-path", type=Path, default=RAW_DATA_PATH, help="Path to raw CSV")
     parser.add_argument(
@@ -75,6 +76,7 @@ def train(data_path: Path, model_names: list[str]) -> tuple[dict[str, Pipeline],
 
 
 def save_artifacts(
+    *,
     best_name: str,
     pipeline: Pipeline,
     metrics: Metrics,
@@ -97,6 +99,7 @@ def save_artifacts(
 
 
 def main(argv: list[str] | None = None) -> None:
+    """Run training end-to-end: fit models, pick the best one, save artifacts."""
     logging.basicConfig(level=logging.INFO, format=LOG_FORMAT)
     args = parse_args(argv)
 
@@ -105,10 +108,14 @@ def main(argv: list[str] | None = None) -> None:
     logger.info("Best model by test %s: %s", args.metric, best_name)
 
     save_artifacts(
-        best_name, pipelines[best_name], metrics, args.metric, args.models_dir, args.reports_dir
+        best_name=best_name,
+        pipeline=pipelines[best_name],
+        metrics=metrics,
+        selection_metric=args.metric,
+        models_dir=args.models_dir,
+        reports_dir=args.reports_dir,
     )
 
 
 if __name__ == "__main__":
     main()
-    

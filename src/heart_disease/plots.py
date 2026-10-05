@@ -48,6 +48,7 @@ def _save_figure(figure: Figure, path: Path) -> Path:
 
 
 def main() -> None:
+    """Generate all EDA figures into the reports directory."""
     logging.basicConfig(level=logging.INFO, format=LOG_FORMAT)
     logging.getLogger("matplotlib").setLevel(logging.WARNING)
     df = clean_data(load_raw_data())

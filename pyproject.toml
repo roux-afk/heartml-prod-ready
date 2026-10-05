@@ -38,3 +38,45 @@ packages = [{ include = "heart_disease", from = "src" }]
 [project.scripts]
 heart-disease-train = "heart_disease.train:main"
 heart-disease-eda = "heart_disease.plots:main"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",  # pycodestyle
+    "F",       # pyflakes
+    "I",       # isort
+    "B",       # bugbear: likely bugs
+    "UP",      # pyupgrade: modern syntax
+    "N",       # pep8-naming
+    "SIM",     # simplify
+    "C4",      # comprehensions
+    "PTH",     # pathlib instead of os.path
+    "RUF",     # ruff-specific
+    "D",       # docstrings
+    "PL",      # pylint
+    "NPY",     # numpy
+    "PD",      # pandas-vet
+]
+ignore = [
+    "D100",  # module docstring
+    "D104",  # package docstring
+    "D203",  # conflicts with D211
+    "D213",  # conflicts with D212
+    "PLR0913",  # total args; positional ones are limited by PLR0917
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D", "PLR2004"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+mypy_path = "src"
+
+[[tool.mypy.overrides]]
+module = ["sklearn.*", "seaborn.*", "lightgbm.*", "joblib.*", "xgboost.*"]
+ignore_missing_imports = true
