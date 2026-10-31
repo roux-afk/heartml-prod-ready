@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help install lint format typecheck test check train eda clean
+.PHONY: help install lint format typecheck test check train retrain rollback eda clean
 
 help:  ## Show available commands
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "} {printf "  %-12s %s\n", $$1, $$2}'
@@ -24,11 +24,17 @@ test:  ## Run tests with coverage
 check: lint typecheck test  ## Run all checks (same as CI)
 
 train:  ## Train all models and save the best one
-	poetry run heart-disease-train
+	poetry run python -m heart_disease.train
+
+retrain:  ## Validate new data, train a candidate, and deploy only if quality gates pass
+	poetry run python -m heart_disease.retrain
+
+rollback:  ## Restore the previous verified registry version
+	poetry run python -m heart_disease.retrain --rollback
 
 eda:  ## Generate EDA figures
-	poetry run heart-disease-eda
+	poetry run python -m heart_disease.plots
 
-clean:  ## Remove caches and generated artifacts
-	rm -rf .mypy_cache .ruff_cache .pytest_cache .coverage htmlcov models reports/figures reports/metrics.json
+clean:  ## Remove caches and figures; preserve the model registry and split history
+	rm -rf .mypy_cache .ruff_cache .pytest_cache .coverage htmlcov reports/figures reports/metrics.json
 	find . -type d -name __pycache__ -not -path "./.venv/*" -exec rm -rf {} +

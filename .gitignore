@@ -19,6 +19,9 @@ htmlcov/
 models/
 reports/figures/
 reports/metrics.json
+data/incoming/*
+!data/incoming/.gitkeep
+ops/local/
 
 # IDE / OS
 .idea/

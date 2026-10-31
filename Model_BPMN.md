@@ -7,6 +7,11 @@
 По опубликованным результатам лучшая модель по F1 — Gaussian Naive Bayes.
 Подробные данные о ней приведены в [Model Card](model_card.md).
 
+Ниже описан исходный экспериментальный CLI `heart-disease-train`.
+Реализованный процесс автоматического переобучения с независимой оценкой,
+версиями и атомарной активацией описан отдельно в
+[Model_retrain_BPMN.md](Model_retrain_BPMN.md).
+
 Ниже используются диаграммы Mermaid, которые GitHub отображает прямо
 в Markdown. Это схемы технического процесса с этапами и потоками данных;
 они не являются исполняемыми BPMN 2.0-моделями.
@@ -129,6 +134,6 @@ flowchart TD
 | Реестр алгоритмов и Pipeline | [models.py](src/heart_disease/models.py) |
 | Вычисление метрик | [evaluate.py](src/heart_disease/evaluate.py) |
 | Обучение, выбор и сохранение | [train.py](src/heart_disease/train.py) |
-| Сохранённая модель | `models/model.joblib`, создаётся командой `poetry run heart-disease-train` |
+| Сохранённая модель | `models/model.joblib`, создаётся командой `poetry run python -m heart_disease.train` |
 | Отчёт о сравнении | `reports/metrics.json`, создаётся той же командой |
 | Назначение, характеристики и ограничения | [model_card.md](model_card.md) |

@@ -38,6 +38,9 @@ packages = [{ include = "heart_disease", from = "src" }]
 [project.scripts]
 heart-disease-train = "heart_disease.train:main"
 heart-disease-eda = "heart_disease.plots:main"
+heart-disease-retrain = "heart_disease.retrain:main"
+heart-disease-predict = "heart_disease.predict:main"
+heart-disease-schedule = "heart_disease.launchd:main"
 
 [tool.ruff]
 line-length = 100
