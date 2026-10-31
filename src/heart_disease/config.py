@@ -31,5 +31,6 @@ ALL_COLUMNS: Final[list[str]] = [*FEATURE_COLUMNS, TARGET_COLUMN]
 
 TEST_SIZE: Final[float] = 0.2
 RANDOM_STATE: Final[int] = 0
+BINARY_CLASSES: Final[tuple[int, int]] = (0, 1)
 
 LOG_FORMAT: Final[str] = "%(asctime)s %(levelname)s %(name)s: %(message)s"

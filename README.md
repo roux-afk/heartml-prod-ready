@@ -25,7 +25,7 @@ make check     # линтер + проверка типов + тесты (то �
 Обучить часть моделей и выбрать лучшую по recall:
 
 ```bash
-poetry run heart-disease-train --models logistic_regression naive_bayes --metric recall
+poetry run python -m heart_disease.train --models logistic_regression naive_bayes --metric recall
 ```
 
 Использовать сохранённую модель:
@@ -38,6 +38,46 @@ pipeline = joblib.load("models/model.joblib")
 features, _ = split_features_target(clean_data(load_raw_data()))
 pipeline.predict(features)  # сырые признаки: импутация и масштабирование внутри пайплайна
 ```
+
+## Автоматическое переобучение и версии модели
+
+В проекте есть локальный процесс с проверками допуска: новые размеченные
+CSV поступают в `data/incoming`, алгоритм выбирается по групповой
+кросс-валидации, а качество проверяется на отдельной новой выборке.
+Кандидат заменяет действующую версию только после прохождения порогов
+из [retraining.toml](retraining.toml), сравнения с ней и smoke-проверок.
+Полная схема, формат CSV и условия отказа — в
+[Model_retrain_BPMN.md](Model_retrain_BPMN.md).
+
+```bash
+make retrain                              # один защищённый запуск
+poetry run python -m heart_disease.launchd          # создать plist локального расписания
+poetry run python -m heart_disease.launchd --install # активировать расписание macOS
+poetry run python -m heart_disease.predict --input features.csv --output predictions.csv
+make rollback                             # восстановить предыдущую версию
+```
+
+После установки LaunchAgent процесс запускается 1-го числа месяца в 03:00
+по часовому поясу компьютера, при поступлении CSV и при загрузке агента.
+При недостатке данных или провале качества активная версия не меняется.
+Начальное обучение может завершиться отказом: наличие модели в эксплуатации
+не гарантируется до прохождения всех проверок.
+
+Версии и отчёты сохраняются локально в `models/registry` и `models/runs`.
+Для применения автоматически активируемой модели используйте
+`heart-disease-predict` или `ActiveModel` из `heart_disease.registry`:
+
+```python
+from pathlib import Path
+from heart_disease.registry import ActiveModel
+
+model = ActiveModel(Path("models"))
+predictions = model.predict(features)  # те же 13 признаков, без target
+```
+
+Этот потребитель автоматически подхватывает переключение `models/active.json`.
+Пример `joblib.load("models/model.joblib")` выше относится к прежнему
+экспериментальному `make train`, который сохранён отдельно.
 
 ## Структура проекта
 
@@ -67,7 +107,7 @@ pipeline.predict(features)  # сырые признаки: импутация и
 | `make typecheck` | Проверка типов mypy (strict) |
 | `make test` | Тесты с отчётом о покрытии (минимум 80%) |
 | `make check` | Все проверки разом, как в CI |
-| `make clean` | Удаляет кэши и сгенерированные артефакты |
+| `make clean` | Удаляет кэши и графики; сохраняет модели и историю оценочных выборок |
 
 Виртуальное окружение `.venv` создаётся внутри проекта и в git не попадает.
 Воспроизводимость обеспечивают три файла: `pyproject.toml` (зависимости),

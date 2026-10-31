@@ -1,0 +1,17 @@
+[retraining]
+# Paths are relative to this configuration file.
+raw_path = "data/raw/cleveland.csv"
+incoming_dir = "data/incoming"
+store_dir = "models"
+models = ["naive_bayes", "logistic_regression", "svm", "decision_tree", "random_forest", "lightgbm", "xgboost"]
+min_new_rows = 100
+min_eval_per_class = 10
+cv_folds = 5
+test_size = 0.2
+max_missing = 0.05
+# Demonstration thresholds, not clinical acceptance criteria.
+min_recall = 0.90
+min_precision = 0.80
+min_f1 = 0.85
+min_improvement = 0.01
+seed = 0
